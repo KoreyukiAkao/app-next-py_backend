@@ -7,14 +7,21 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import wikipediaapi
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # FastAPIのアプリケーションを作成
 app = FastAPI()
 
+# 環境変数からフロントエンドのURLを取得
+frontend_url = os.getenv("PY_PUBLIC_FRONTEND_URL") 
+print(frontend_url)
 # CORSミドルウェアの設定
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # フロントエンドのオリジンを許可
+    allow_origins=[frontend_url],  # フロントエンドのオリジンを許可
     allow_credentials=True,
     allow_methods=["*"],  # すべてのHTTPメソッドを許可
     allow_headers=["*"],  # すべてのHTTPヘッダーを許可
