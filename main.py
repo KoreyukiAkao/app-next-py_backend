@@ -12,6 +12,11 @@ import os
 
 load_dotenv()
 
+# HEADリクエスト用エンドポイント: UptimeRobotや監視ツール向けに対応
+@app.head("/summarize")
+async def summarize_head():
+    return {"message": "HEAD request successful"}
+
 # FastAPIのアプリケーションを作成
 app = FastAPI()
 
