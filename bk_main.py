@@ -4,8 +4,9 @@ from pydantic import BaseModel
 import wikipediaapi
 from dotenv import load_dotenv
 import os
+from transformers import pipeline
+from googletrans import Translator
 from rake_nltk import Rake
-import requests
 
 
 load_dotenv()
@@ -42,30 +43,10 @@ async def read_root():
     # "Hello": "World"というメッセージを返す
     return {"Hello": "World"}
 
-def get_wikipedia_summary(query, max_length=150):
-    wiki_wiki = wikipediaapi.Wikipedia(language='ja', user_agent='YourAppName/1.0 (your-email@example.com)')
-    page = wiki_wiki.page(query)
-    if page.exists():
-        summary = page.summary
-        if len(summary) > max_length:
-            summary = summary[:max_length] + "..."
-        return summary, page.fullurl
-    else:
-        return "指定された記事は存在しません。", None
-
-def translate_with_deepl(text, target_lang='EN'):
-    api_key = os.getenv('DEEPL_API_KEY')  # 環境変数からAPIキーを取得
-    url = "https://api-free.deepl.com/v2/translate"
-    params = {
-        'auth_key': api_key,
-        'text': text,
-        'target_lang': target_lang
-    }
-    response = requests.post(url, data=params)
-    if response.status_code == 200:
-        return response.json()['translations'][0]['text']
-    else:
-        raise Exception(f"Error: {response.status_code}, {response.text}")
+def translate_summary(summary):
+    translator = Translator()
+    translated_summary = translator.translate(summary, dest='en').text
+    return translated_summary
 
 def extract_keywords(text):
     r = Rake()
@@ -77,11 +58,24 @@ def extract_keywords(text):
 async def summarize(query: Query):
     summary, url = get_wikipedia_summary(query.query)
     if summary:
-        translated_summary = translate_with_deepl(summary)
+        translated_summary = translate_summary(summary)
+        keywords = extract_keywords(translated_summary)
         return {
             "summary": summary,
             "translated_summary": translated_summary,
+            "keywords": keywords,
             "url": url
         }
     else:
         raise HTTPException(status_code=404, detail="記事が見つかりません")
+
+def get_wikipedia_summary(query, max_length=500):
+    wiki_wiki = wikipediaapi.Wikipedia(language='ja')
+    page = wiki_wiki.page(query)
+    if page.exists():
+        summary = page.summary
+        if len(summary) > max_length:
+            summary = summary[:max_length] + "..."
+        return summary, page.fullurl
+    else:
+        return "指定された記事は存在しません。", None
