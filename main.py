@@ -12,13 +12,13 @@ import os
 
 load_dotenv()
 
+# FastAPIのアプリケーションを作成
+app = FastAPI()
+
 # HEADリクエスト用エンドポイント: UptimeRobotや監視ツール向けに対応
 @app.head("/summarize")
 async def summarize_head():
     return {"message": "HEAD request successful"}
-
-# FastAPIのアプリケーションを作成
-app = FastAPI()
 
 # 環境変数からフロントエンドのURLを取得
 frontend_url = os.getenv("PY_PUBLIC_FRONTEND_URL") 
