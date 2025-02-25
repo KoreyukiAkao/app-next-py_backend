@@ -4,7 +4,6 @@ from pydantic import BaseModel
 import wikipediaapi
 from dotenv import load_dotenv
 import os
-from rake_nltk import Rake
 import requests
 
 
